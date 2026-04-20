@@ -550,12 +550,12 @@
         <div class="kpi-foot" id="kpiOosPctFoot">-</div>
       </div>
       <div class="card kpi">
-        <div class="kpi-label">Total Item Grade Toko</div>
+        <div class="kpi-label">Total Item Grade Toko (AA,A,B)</div>
         <div class="kpi-value" id="kpiMaster">-</div>
         <div class="kpi-foot" id="kpiMasterFoot">-</div>
       </div>
       <div class="card kpi">
-        <div class="kpi-label">Store / SKU</div>
+        <div class="kpi-label">Store</div>
         <div class="kpi-value" id="kpiDimension">-</div>
         <div class="kpi-foot" id="kpiDimensionFoot">-</div>
       </div>
@@ -563,7 +563,7 @@
 
     <section class="card section">
       <div class="section-header">
-        <h2>Top Store</h2>
+        <h2>By Store</h2>
         <div class="section-tools">
           <button class="btn warning" onclick="openStoreExportModal()">Export Store</button>
         </div>
@@ -589,7 +589,7 @@
 
     <section class="card section">
       <div class="section-header">
-        <h2>Top Officer</h2>
+        <h2>By Category</h2>
         <div class="section-tools">
           <input class="search-input" type="text" id="officerSearchBox" placeholder="Cari officer" oninput="renderOfficerTable()" />
           <button class="btn" onclick="exportOfficerTable()">Export Excel</button>
@@ -600,7 +600,7 @@
           <thead>
             <tr>
               <th>Rank</th>
-              <th>Officer</th>
+              <th>Category</th>
               <th>Total Item Grade (AA,A,B)</th>
               <th>Total OOS Item Grade (AA,A,B)</th>
               <th>% OOS</th>
@@ -620,7 +620,7 @@
 
     <section class="card section">
       <div class="section-header">
-        <h2>Top Item</h2>
+        <h2>By Item</h2>
         <div class="section-tools">
           <input class="search-input" type="text" id="itemSearchBox" placeholder="Cari SKU / item / officer" oninput="renderTopItems()" />
           <button class="btn warning" onclick="openItemExportModal()">Export Item</button>
@@ -824,8 +824,8 @@
       document.getElementById('kpiMaster').textContent = formatNumber(s.masterItemCount);
       document.getElementById('kpiMasterFoot').textContent = '';
 
-      document.getElementById('kpiDimension').textContent = `${formatNumber(s.totalStores)} / ${formatNumber(s.totalItems)}`;
-      document.getElementById('kpiDimensionFoot').textContent = 'Store / Unique SKU';
+      document.getElementById('kpiDimension').textContent = `${formatNumber(s.totalStores)}`;
+      document.getElementById('kpiDimensionFoot').textContent = 'Store';
 
       const lastUpdate = dashboardData.databaseUpdatedAt || dashboardData.generatedAt;
       document.getElementById('generatedAtChip').textContent = `Last Update DB: ${new Date(lastUpdate).toLocaleString('id-ID')}`;
