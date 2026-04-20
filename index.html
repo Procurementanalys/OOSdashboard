@@ -175,7 +175,8 @@
     }
 
     .search-input,
-    .select-input {
+    .select-input,
+    .file-input {
       width: min(320px, 100%);
       padding: 12px 14px;
       border-radius: 12px;
@@ -191,6 +192,10 @@
 
     .select-input option {
       color: #111827;
+    }
+
+    .file-input {
+      width: 100%;
     }
 
     .btn {
@@ -220,6 +225,11 @@
     .btn.warning {
       background: linear-gradient(135deg, #f59e0b, #f97316);
       box-shadow: 0 10px 24px rgba(245, 158, 11, 0.25);
+    }
+
+    .btn.success {
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      box-shadow: 0 10px 24px rgba(34, 197, 94, 0.25);
     }
 
     .btn:disabled {
@@ -299,27 +309,46 @@
       min-width: 180px;
     }
 
-    .metric-value {
+    .split-visual {
+      display: grid;
+      gap: 8px;
+    }
+
+    .split-bar {
+      width: 100%;
+      height: 12px;
+      display: flex;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .split-segment {
+      height: 100%;
+      min-width: 0;
+    }
+
+    .split-segment.green {
+      background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    }
+
+    .split-segment.red {
+      background: linear-gradient(90deg, #f90202 0%, #f20707 100%);
+    }
+
+    .split-labels {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
     }
 
-    .track {
-      width: 100%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.10);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .bar {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #4f8cff 0%, #8b5cf6 100%);
+    .split-labels strong {
+      color: var(--text);
+      font-size: 13px;
     }
 
     .empty {
@@ -350,6 +379,35 @@
       font-size: 18px;
       margin-top: 4px;
       color: white;
+    }
+
+    .alert-note {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: #fde7b1;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .selected-file {
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-word;
+    }
+
+    .page-credit {
+      margin-top: 28px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    .page-credit strong {
+      color: #ffffff;
+      font-weight: 700;
     }
 
     .modal-backdrop {
@@ -457,7 +515,8 @@
 
       .search-input,
       .select-input,
-      .btn {
+      .btn,
+      .file-input {
         width: 100%;
       }
 
@@ -481,7 +540,7 @@
 
     <section class="grid-kpi">
       <div class="card kpi primary">
-        <div class="kpi-label">Store OOS</div>
+        <div class="kpi-label">Total Qty OOS</div>
         <div class="kpi-value" id="kpiOosStore">-</div>
         <div class="kpi-foot" id="kpiOosStoreFoot">-</div>
       </div>
@@ -491,7 +550,7 @@
         <div class="kpi-foot" id="kpiOosPctFoot">-</div>
       </div>
       <div class="card kpi">
-        <div class="kpi-label">Master Item</div>
+        <div class="kpi-label">Total Item Grade Toko</div>
         <div class="kpi-value" id="kpiMaster">-</div>
         <div class="kpi-foot" id="kpiMasterFoot">-</div>
       </div>
@@ -515,8 +574,8 @@
             <tr>
               <th>Rank</th>
               <th>Store</th>
-              <th>OOS Item 0</th>
-              <th>Total Item Store</th>
+              <th>Total Item Grade (AA,A,B)</th>
+              <th>Total OOS Item Grade (AA,A,B)</th>
               <th>% OOS</th>
               <th>Visual</th>
             </tr>
@@ -542,8 +601,8 @@
             <tr>
               <th>Rank</th>
               <th>Officer</th>
-              <th>OOS Item 0</th>
-              <th>Total Item Grade</th>
+              <th>Total Item Grade (AA,A,B)</th>
+              <th>Total OOS Item Grade (AA,A,B)</th>
               <th>% OOS</th>
               <th>Visual</th>
             </tr>
@@ -585,9 +644,10 @@
         </table>
       </div>
     </section>
+
+    <div class="page-credit">© 2026 Apotek Alpro <strong>Procurement & Data Analysis Team</strong></div>
   </div>
 
-  <!-- MODAL EXPORT STORE -->
   <div class="modal-backdrop" id="storeExportModal" onclick="handleBackdropClose(event, 'storeExportModal')">
     <div class="modal">
       <div class="modal-header">
@@ -621,15 +681,23 @@
     </div>
   </div>
 
-  <!-- MODAL EXPORT ITEM -->
   <div class="modal-backdrop" id="itemExportModal" onclick="handleBackdropClose(event, 'itemExportModal')">
     <div class="modal">
       <div class="modal-header">
         <h3>Export Item</h3>
-        <p>Export seluruh item database dengan filter SOH Qty 0, Officer tertentu, atau semua data.</p>
+        <p>Disediakan 2 versi export: Export Report untuk format ringkasan seperti sekarang tanpa warna, dan Raw Data untuk baris data database sesuai filter user.</p>
       </div>
       <div class="modal-body">
         <div class="form-grid">
+          <div class="field">
+            <label for="itemExportVersion">Versi Export</label>
+            <select id="itemExportVersion" class="select-input">
+              <option value="REPORT">Export Report</option>
+              <option value="RAW">Raw Data Database</option>
+            </select>
+            <small>Export Report = format ringkasan seperti saat ini tanpa warna. Raw Data Database = baris data asli sesuai filter.</small>
+          </div>
+
           <div class="field">
             <label for="itemExportFilter">Filter Data</label>
             <select id="itemExportFilter" class="select-input" onchange="toggleItemOfficerField()">
@@ -637,7 +705,7 @@
               <option value="OFFICER">Officer</option>
               <option value="ALL">All</option>
             </select>
-            <small>OFFICER akan menampilkan pilihan officer untuk export item berdasarkan PIC.</small>
+            <small>Logic filter tidak diubah. Yang berubah hanya pilihan versi export.</small>
           </div>
 
           <div class="field hidden" id="itemOfficerField">
@@ -651,14 +719,14 @@
       </div>
       <div class="modal-footer">
         <button class="btn secondary" onclick="closeModal('itemExportModal')">Batal</button>
-        <button class="btn" id="confirmItemExportBtn" onclick="confirmItemExport()">Download Excel</button>
+        <button class="btn warning" id="confirmItemExportBtn" onclick="confirmItemExport()">Download Excel</button>
       </div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script>
-    // Ganti jika URL web app Apps Script berubah setelah deploy baru
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyTeecTkBVk-8i8IFMYP4xKkauud0yMSE7bFlmbcsgBYGFulsgn5sBBLkDIf89WlPMsZQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbydd2bQ1fJBcbJqaeF3OMzWeYkEBkEaYEd5OeP12N0M5EqA3hi0Yt-bGfraOOYG_GA2aA/exec';
 
     let dashboardData = null;
 
@@ -711,6 +779,24 @@
       return data;
     }
 
+    async function postApi(action, payload = {}) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action, ...payload })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Request gagal');
+      }
+
+      return data;
+    }
+
     async function loadDashboard() {
       try {
         const data = await fetchApi('dashboard');
@@ -733,15 +819,16 @@
       document.getElementById('kpiOosStoreFoot').textContent = 'SOH Qty = 0';
 
       document.getElementById('kpiOosPct').textContent = formatPercent(s.oosPct);
-      document.getElementById('kpiOosPctFoot').textContent = `Master Mode: ${s.masterMode}`;
+      document.getElementById('kpiOosPctFoot').textContent = ``;
 
       document.getElementById('kpiMaster').textContent = formatNumber(s.masterItemCount);
-      document.getElementById('kpiMasterFoot').textContent = 'Denominator Global';
+      document.getElementById('kpiMasterFoot').textContent = '';
 
       document.getElementById('kpiDimension').textContent = `${formatNumber(s.totalStores)} / ${formatNumber(s.totalItems)}`;
       document.getElementById('kpiDimensionFoot').textContent = 'Store / Unique SKU';
 
-      document.getElementById('generatedAtChip').textContent = new Date(dashboardData.generatedAt).toLocaleString('id-ID');
+      const lastUpdate = dashboardData.databaseUpdatedAt || dashboardData.generatedAt;
+      document.getElementById('generatedAtChip').textContent = `Last Update DB: ${new Date(lastUpdate).toLocaleString('id-ID')}`;
       document.getElementById('sourceSheetChip').textContent = dashboardData.sourceSheet || '-';
       document.getElementById('officerSourceMeta').textContent = s.officerSource || '-';
       document.getElementById('officerCountMeta').textContent = formatNumber((dashboardData.byOfficer || []).length);
@@ -768,6 +855,33 @@
       });
     }
 
+    function getScaleWidth(value, maxValue) {
+      const safeMax = Number(maxValue || 0);
+      if (!safeMax) return 0;
+      return Math.max(0, Math.min((Number(value || 0) / safeMax) * 100, 100));
+    }
+
+    function buildDualMetricCell(oosValue, totalValue, maxValue) {
+      const safeOos = Math.max(Number(oosValue || 0), 0);
+      const safeTotal = Math.max(Number(totalValue || 0), 0);
+      const combinedValue = safeTotal + safeOos;
+      const greenWidth = combinedValue ? (safeTotal / combinedValue) * 100 : 0;
+      const redWidth = combinedValue ? (safeOos / combinedValue) * 100 : 0;
+
+      return `
+        <div class="split-visual">
+          <div class="split-labels">
+            <span>Total Item Grade <strong>${formatNumber(safeTotal)}</strong></span>
+            <span>OOS Item Grade <strong>${formatNumber(safeOos)}</strong></span>
+          </div>
+          <div class="split-bar" title="Total Item Grade: ${formatNumber(safeTotal)} | OOS Item Grade: ${formatNumber(safeOos)}">
+            <div class="split-segment green" style="width:${greenWidth}%"></div>
+            <div class="split-segment red" style="width:${redWidth}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
     function renderTopStores() {
       const tbody = document.getElementById('topStoreBody');
       const rows = getVisibleStoreRows();
@@ -777,17 +891,16 @@
         return;
       }
 
+      const maxCount = Math.max(...rows.map(item => Number(item.totalItemCount || 0)), 1);
+
       tbody.innerHTML = rows.map((item, idx) => `
         <tr>
           <td><span class="rank-badge">${idx + 1}</span></td>
           <td><strong>${escapeHtml(item.storeName)}</strong></td>
-          <td>${formatNumber(item.oosStoreCount)}</td>
           <td>${formatNumber(item.totalItemCount)}</td>
+          <td>${formatNumber(item.oosStoreCount)}</td>
           <td>${formatPercent(item.oosPct)}</td>
-          <td class="metric-cell">
-            <div class="metric-value"><span>${formatPercent(item.oosPct)}</span><span>${formatNumber(item.oosStoreCount)}</span></div>
-            <div class="track"><div class="bar" style="width:${Math.min(Number(item.oosPct || 0), 100)}%"></div></div>
-          </td>
+          <td class="metric-cell">${buildDualMetricCell(item.oosStoreCount, item.totalItemCount, maxCount)}</td>
         </tr>
       `).join('');
     }
@@ -802,17 +915,16 @@
         return;
       }
 
+      const maxCount = Math.max(...rows.map(item => Number(item.totalItemGradeCount || 0)), 1);
+
       tbody.innerHTML = rows.map((item, idx) => `
         <tr>
           <td><span class="rank-badge">${idx + 1}</span></td>
           <td><strong>${escapeHtml(item.procurementOfficer)}</strong></td>
-          <td>${formatNumber(item.oosItemCount)}</td>
           <td>${formatNumber(item.totalItemGradeCount)}</td>
+          <td>${formatNumber(item.oosItemCount)}</td>
           <td>${formatPercent(item.oosPct)}</td>
-          <td class="metric-cell">
-            <div class="metric-value"><span>${formatPercent(item.oosPct)}</span><span>${formatNumber(item.oosItemCount)}</span></div>
-            <div class="track"><div class="bar" style="width:${Math.min(Number(item.oosPct || 0), 100)}%"></div></div>
-          </td>
+          <td class="metric-cell">${buildDualMetricCell(item.oosItemCount, item.totalItemGradeCount, maxCount)}</td>
         </tr>
       `).join('');
     }
@@ -888,6 +1000,76 @@
       URL.revokeObjectURL(url);
     }
 
+    function exportStyledTopItemExcel(fileName, headers, rows) {
+      if (!rows.length) {
+        alert('Tidak ada data untuk diexport');
+        return;
+      }
+
+      const headHtml = `<tr>${headers.map(h => `<th style="background:#eaf1ff;color:#16367b;padding:14px;border:1px solid #d6e1ff;text-transform:uppercase;font-size:12px;letter-spacing:.08em;text-align:left;">${escapeHtml(h)}</th>`).join('')}</tr>`;
+      const bodyHtml = rows.map(row => {
+        const statusRaw = String(row[3] || 'Active');
+        const isActive = statusRaw.toLowerCase() === 'active';
+        const statusBg = isActive ? '#daf7e4' : '#fee2e2';
+        const statusColor = isActive ? '#166534' : '#991b1b';
+
+        return `
+          <tr>
+            <td style="padding:12px 14px;border:1px solid #384257;color:#f8fbff;background:#273142;mso-number-format:'\@';font-weight:700;">${escapeHtml(row[0])}</td>
+            <td style="padding:12px 14px;border:1px solid #384257;color:#f8fbff;background:#273142;">${escapeHtml(row[1])}</td>
+            <td style="padding:12px 14px;border:1px solid #384257;color:#f8fbff;background:#273142;">${escapeHtml(row[2])}</td>
+            <td style="padding:12px 14px;border:1px solid #384257;background:#273142;">
+              <span style="display:inline-block;padding:6px 10px;border-radius:999px;background:${statusBg};color:${statusColor};font-weight:700;">${escapeHtml(statusRaw)}</span>
+            </td>
+            <td style="padding:12px 14px;border:1px solid #384257;color:#f8fbff;background:#273142;text-align:right;">${escapeHtml(row[4])}</td>
+            <td style="padding:12px 14px;border:1px solid #384257;color:#f8fbff;background:#273142;text-align:right;">${escapeHtml(row[5])}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta charset="UTF-8">
+            <!--[if gte mso 9]>
+            <xml>
+              <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                  <x:ExcelWorksheet>
+                    <x:Name>Top Item</x:Name>
+                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                  </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+              </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+          </head>
+          <body style="font-family:Arial,Helvetica,sans-serif;background:#09111f;">
+            <table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;min-width:980px;">
+              <tr>
+                <td colspan="6" style="padding:12px 0 16px;font-size:24px;font-weight:700;color:#ffffff;background:#09111f;">Top Item</td>
+              </tr>
+              <tr>
+                <td colspan="6" style="padding:0 0 16px;font-size:12px;color:#c6d3ee;background:#09111f;">Export mengikuti tampilan tabel Top Item dan menampilkan seluruh item sesuai filter yang dipilih.</td>
+              </tr>
+              ${headHtml}
+              ${bodyHtml}
+            </table>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${sanitizeFileName(fileName)}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
     function exportOfficerTable() {
       const rows = getVisibleOfficerRows().map((item, idx) => [
         idx + 1,
@@ -933,10 +1115,17 @@
     }
 
     function openItemExportModal() {
+      document.getElementById('itemExportVersion').value = 'REPORT';
       document.getElementById('itemExportFilter').value = 'OOS';
       populateSelect('itemOfficerSelect', dashboardData?.availableOfficers || [], 'Pilih Officer');
       toggleItemOfficerField();
       openModal('itemExportModal');
+    }
+
+    function openImportModal() {
+      document.getElementById('importFileInput').value = '';
+      document.getElementById('selectedImportFile').textContent = 'Belum ada file dipilih';
+      openModal('importModal');
     }
 
     function openModal(modalId) {
@@ -1005,6 +1194,7 @@
     }
 
     async function confirmItemExport() {
+      const exportVersion = document.getElementById('itemExportVersion').value;
       const filterType = document.getElementById('itemExportFilter').value;
       const officerName = document.getElementById('itemOfficerSelect').value;
 
@@ -1016,7 +1206,7 @@
       try {
         setButtonLoading('confirmItemExportBtn', true, 'Memproses...', 'Download Excel');
 
-        const params = { filterType };
+        const params = { filterType, exportVersion };
         if (filterType === 'OFFICER') {
           params.officerName = officerName;
         }
@@ -1024,7 +1214,7 @@
         const data = await fetchApi('exportItem', params);
 
         exportHtmlTableAsExcel(
-          data.fileName || `OOS_ITEM_${filterType}`,
+          data.fileName || `OOS_ITEM_${exportVersion}_${filterType}`,
           data.headers || [],
           data.rows || []
         );
@@ -1038,10 +1228,63 @@
       }
     }
 
+    function handleImportFileChange() {
+      const input = document.getElementById('importFileInput');
+      const label = document.getElementById('selectedImportFile');
+      const file = input.files && input.files[0];
+      label.textContent = file ? `File dipilih: ${file.name}` : 'Belum ada file dipilih';
+    }
+
+    async function parseImportFile(file) {
+      const extension = String(file.name || '').split('.').pop().toLowerCase();
+
+      if (extension === 'csv') {
+        const text = await file.text();
+        const workbook = XLSX.read(text, { type: 'string' });
+        const firstSheet = workbook.SheetNames[0];
+        return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+      }
+
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const firstSheet = workbook.SheetNames[0];
+      return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+    }
+
+    async function confirmImportData() {
+      const fileInput = document.getElementById('importFileInput');
+      const file = fileInput.files && fileInput.files[0];
+
+      if (!file) {
+        alert('Silakan pilih file import terlebih dahulu');
+        return;
+      }
+
+      try {
+        setButtonLoading('confirmImportBtn', true, 'Uploading...', 'Upload & Update');
+
+        const rows = await parseImportFile(file);
+        if (!rows || rows.length < 2) {
+          throw new Error('Isi file kosong atau tidak memiliki data yang valid');
+        }
+
+        const result = await postApi('importData', { rows });
+        alert(`Import berhasil. Total baris: ${formatNumber(result.totalRows || 0)}`);
+        closeModal('importModal');
+        await loadDashboard();
+      } catch (err) {
+        console.error(err);
+        alert('Gagal import database: ' + err.message);
+      } finally {
+        setButtonLoading('confirmImportBtn', false, 'Uploading...', 'Upload & Update');
+      }
+    }
+
     window.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
         closeModal('storeExportModal');
         closeModal('itemExportModal');
+        closeModal('importModal');
       }
     });
 
