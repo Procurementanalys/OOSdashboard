@@ -488,6 +488,48 @@
       padding: 16px 22px 22px;
     }
 
+    .feedback-input {
+      width: 100%;
+      min-width: 180px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .feedback-input:focus {
+      border-color: var(--primary);
+      background: rgba(79,140,255,0.08);
+    }
+    .feedback-input.has-value {
+      border-color: rgba(34,197,94,0.5);
+      background: rgba(34,197,94,0.06);
+    }
+    .page-btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      transition: 0.2s ease;
+    }
+    .page-btn:hover { background: rgba(255,255,255,0.12); }
+    .page-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 14px rgba(79,140,255,0.3);
+    }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     @media (max-width: 1120px) {
       .grid-kpi {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -561,32 +603,49 @@
       </div>
     </section>
 
+    <!-- BY ITEM -->
     <section class="card section">
       <div class="section-header">
-        <h2>By Store</h2>
+        <h2>By Item</h2>
         <div class="section-tools">
-          <button class="btn warning" onclick="openStoreExportModal()">Export Store</button>
+          <input class="search-input" type="text" id="itemSearchBox" placeholder="Cari SKU / item" oninput="onItemSearch()" />
+          <select class="select-input" id="itemCategoryFilter" onchange="onItemCategoryFilter()" style="width:auto;min-width:180px;">
+            <option value="">Semua Category</option>
+          </select>
+          <button class="btn warning" onclick="openItemExportModal()">Export Item</button>
+          <button class="btn success" onclick="exportFeedbackExcel()">⬇ Export Feedback</button>
         </div>
       </div>
+
+
+
       <div class="table-wrap">
-        <table>
+        <table style="min-width:1160px;">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Store</th>
-              <th>Total Item Grade (AA,A,B)</th>
-              <th>Total OOS Item Grade (AA,A,B)</th>
+              <th style="width:44px;">#</th>
+              <th>Item Code</th>
+              <th>Item Description</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>OOS Count</th>
               <th>% OOS</th>
-              <th>Visual</th>
+              <th style="min-width:260px;">Feedback</th>
             </tr>
           </thead>
-          <tbody id="topStoreBody">
-            <tr><td colspan="6" class="empty">Belum ada data</td></tr>
+          <tbody id="topItemBody">
+            <tr><td colspan="8" class="empty">Belum ada data</td></tr>
           </tbody>
         </table>
       </div>
+      <!-- Pagination -->
+      <div id="itemPagination" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap;">
+        <div id="itemPaginationInfo" style="font-size:13px;color:var(--muted);"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="itemPaginationBtns"></div>
+      </div>
     </section>
 
+    <!-- BY CATEGORY -->
     <section class="card section">
       <div class="section-header">
         <h2>By Category</h2>
@@ -618,27 +677,27 @@
       </div>
     </section>
 
+    <!-- BY STORE -->
     <section class="card section">
       <div class="section-header">
-        <h2>By Item</h2>
+        <h2>By Store</h2>
         <div class="section-tools">
-          <input class="search-input" type="text" id="itemSearchBox" placeholder="Cari SKU / item / officer" oninput="renderTopItems()" />
-          <button class="btn warning" onclick="openItemExportModal()">Export Item</button>
+          <button class="btn warning" onclick="openStoreExportModal()">Export Store</button>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Item Code</th>
-              <th>Item Description</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th>OOS Count</th>
+              <th>Rank</th>
+              <th>Store</th>
+              <th>Total Item Grade (AA,A,B)</th>
+              <th>Total OOS Item Grade (AA,A,B)</th>
               <th>% OOS</th>
+              <th>Visual</th>
             </tr>
           </thead>
-          <tbody id="topItemBody">
+          <tbody id="topStoreBody">
             <tr><td colspan="6" class="empty">Belum ada data</td></tr>
           </tbody>
         </table>
@@ -726,7 +785,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbydd2bQ1fJBcbJqaeF3OMzWeYkEBkEaYEd5OeP12N0M5EqA3hi0Yt-bGfraOOYG_GA2aA/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxaY3c1tzPgfDIdhX-gyVs4vkMaf3arMJeB4fjCV-SVb2AuWreiV9Fv5oKmgJs0hww9-Q/exec';
 
     let dashboardData = null;
 
@@ -802,9 +861,12 @@
         const data = await fetchApi('dashboard');
 
         dashboardData = data;
+        const newUpdatedAt = data.databaseUpdatedAt || data.generatedAt || null;
+        checkAndResetFeedback(newUpdatedAt);
         renderSummary();
         renderTopStores();
         renderOfficerTable();
+        populateCategoryFilter();
         renderTopItems();
         initExportSelectors();
       } catch (err) {
@@ -929,29 +991,228 @@
       `).join('');
     }
 
-    function renderTopItems() {
-      const tbody = document.getElementById('topItemBody');
-      const rows = getVisibleItemRows();
+    // ══════════════════════════════════════════════════════════════════
+    // FEEDBACK SYSTEM — per item, locked per category after submit
+    // Reset triggered when databaseUpdatedAt changes
+    // ══════════════════════════════════════════════════════════════════
+    const feedbackMap  = {};          // sku → text
+    const lockedItems  = new Set();   // individual skus that are locked
+    let lastDbUpdatedAt = null;
+    let activeCategory  = '';         // currently filtered category
 
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty">Data tidak ditemukan</td></tr>';
+    // ── Reset when DB updates ─────────────────────────────────────────
+    function checkAndResetFeedback(newUpdatedAt) {
+      if (lastDbUpdatedAt && newUpdatedAt && newUpdatedAt !== lastDbUpdatedAt) {
+        for (const key in feedbackMap) delete feedbackMap[key];
+        lockedItems.clear();
+        console.info('[Feedback] DB updated — feedback reset.');
+      }
+      lastDbUpdatedAt = newUpdatedAt;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    function getFeedback(sku)        { return feedbackMap[sku] || ''; }
+    function saveFeedback(sku, val)  { feedbackMap[sku] = val; }
+    function isItemLocked(item)      { return lockedItems.has(String(item.skuNumber || '')); }
+    function isSkuLocked(sku)        { return lockedItems.has(String(sku || '')); }
+
+    // ── Category filter dropdown ──────────────────────────────────────
+    function populateCategoryFilter() {
+      const sel = document.getElementById('itemCategoryFilter');
+      if (!sel || !dashboardData) return;
+      const cats = [...new Set(
+        (dashboardData.topItems || []).slice(0, MAX_ITEMS)
+          .map(i => i.procurementOfficer || '').filter(Boolean)
+      )].sort();
+
+      sel.innerHTML = '<option value="">Semua Category</option>' +
+        cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+      if (activeCategory && cats.includes(activeCategory)) sel.value = activeCategory;
+    }
+
+    function onItemCategoryFilter() {
+      const sel = document.getElementById('itemCategoryFilter');
+      activeCategory = sel ? sel.value : '';
+      itemCurrentPage = 1;
+      renderTopItems();
+    }
+
+    function onItemSearch() {
+      itemCurrentPage = 1;
+      renderTopItems();
+    }
+
+    // ── Submit per item ───────────────────────────────────────────────
+    function submitItemFeedback(sku) {
+      if (isSkuLocked(sku)) return;
+      const fb = getFeedback(sku).trim();
+      if (!fb) {
+        if (!confirm('Feedback masih kosong. Tetap submit & lock item ini?')) return;
+      }
+      lockedItems.add(String(sku));
+      renderTopItems();
+    }
+
+    function handleFeedbackInput(el) {
+      saveFeedback(el.dataset.sku, el.value);
+      el.classList.toggle('has-value', !!el.value.trim());
+    }
+
+    // ── Item Pagination state ─────────────────────────────────────────
+    const ITEMS_PER_PAGE = 20;
+    const MAX_ITEMS      = 100;
+    let   itemCurrentPage = 1;
+
+    function getFilteredItemRows() {
+      if (!dashboardData) return [];
+      const keyword   = (document.getElementById('itemSearchBox')?.value || '').trim().toLowerCase();
+      const catFilter = activeCategory;
+      return (dashboardData.topItems || []).slice(0, MAX_ITEMS).filter(item => {
+        const matchCat = !catFilter || (item.procurementOfficer || '') === catFilter;
+        const matchKw  = !keyword  || [item.skuNumber, item.itemDescription, item.procurementOfficer, item.status]
+          .join(' ').toLowerCase().includes(keyword);
+        return matchCat && matchKw;
+      });
+    }
+
+    function renderTopItems() {
+      const tbody      = document.getElementById('topItemBody');
+      const allRows    = getFilteredItemRows();
+      const totalPages = Math.ceil(allRows.length / ITEMS_PER_PAGE) || 1;
+
+      if (itemCurrentPage > totalPages) itemCurrentPage = totalPages;
+      if (itemCurrentPage < 1)          itemCurrentPage = 1;
+
+      const start    = (itemCurrentPage - 1) * ITEMS_PER_PAGE;
+      const pageRows = allRows.slice(start, start + ITEMS_PER_PAGE);
+
+      if (!allRows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty">Data tidak ditemukan</td></tr>';
+        renderItemPagination(0, 0, 0);
         return;
       }
 
-      tbody.innerHTML = rows.map(item => {
-        const statusText = escapeHtml(item.status || 'Active');
+      tbody.innerHTML = pageRows.map((item, idx) => {
+        const globalIdx   = start + idx + 1;
+        const statusText  = escapeHtml(item.status || 'Active');
         const statusClass = String(item.status || 'Active').toLowerCase() === 'active' ? 'status-badge' : 'status-badge inactive';
+        const sku         = item.skuNumber;
+        const skuEsc      = escapeHtml(sku);
+        const fb          = getFeedback(sku);
+        const fbEsc       = escapeHtml(fb);
+        const locked      = isItemLocked(item);
+
+        const feedbackCell = locked
+          ? `<div style="display:flex;flex-direction:column;gap:5px;">
+               <div style="padding:8px 10px;border-radius:10px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:${fb ? '#86efac' : 'var(--muted)'};font-size:13px;line-height:1.5;min-height:38px;">
+                 ${fb ? fbEsc : '<em style="opacity:0.5;">Tidak ada feedback</em>'}
+               </div>
+               <span style="font-size:11px;color:#4ade80;font-weight:700;letter-spacing:0.06em;">🔒 SUBMITTED</span>
+             </div>`
+          : `<div style="display:flex;gap:8px;align-items:flex-start;">
+               <textarea
+                 class="feedback-input${fb ? ' has-value' : ''}"
+                 rows="2"
+                 placeholder="Tulis feedback..."
+                 data-sku="${skuEsc}"
+                 oninput="handleFeedbackInput(this)"
+               >${fbEsc}</textarea>
+               <button
+                 onclick="submitItemFeedback('${skuEsc}')"
+                 style="flex-shrink:0;padding:8px 14px;border-radius:10px;border:0;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:white;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(14,165,233,0.3);transition:0.2s ease;align-self:stretch;"
+                 onmouseover="this.style.transform='translateY(-1px)'"
+                 onmouseout="this.style.transform=''"
+               >Submit</button>
+             </div>`;
+
         return `
-          <tr>
-            <td><strong>${escapeHtml(item.skuNumber)}</strong></td>
+          <tr style="${locked ? 'opacity:0.72;' : ''}">
+            <td style="text-align:center;color:var(--muted);font-size:13px;">${globalIdx}</td>
+            <td><strong>${skuEsc}</strong></td>
             <td>${escapeHtml(item.itemDescription)}</td>
-            <td>${escapeHtml(item.procurementOfficer || '-')}</td>
+            <td>
+              <span style="padding:4px 10px;border-radius:8px;background:rgba(79,140,255,0.12);border:1px solid rgba(79,140,255,0.2);font-size:12px;font-weight:600;color:#93c5fd;">
+                ${escapeHtml(item.procurementOfficer || '-')}
+              </span>
+            </td>
             <td><span class="${statusClass}">${statusText}</span></td>
             <td>${formatNumber(item.oosStoreCount)}</td>
             <td>${formatPercent(item.oosPct)}</td>
-          </tr>
-        `;
+            <td>${feedbackCell}</td>
+          </tr>`;
       }).join('');
+
+      renderItemPagination(allRows.length, totalPages, itemCurrentPage);
+    }
+
+    // ── Submit per item ───────────────────────────────────────────────
+    function submitItemFeedback(sku) {
+      if (isSkuLocked(sku)) return;
+      const fb = getFeedback(sku).trim();
+      if (!fb) {
+        if (!confirm('Feedback masih kosong. Tetap submit & lock item ini?')) return;
+      }
+      lockedItems.add(String(sku));
+      renderTopItems();
+    }
+
+    function handleFeedbackInput(el) {
+      saveFeedback(el.dataset.sku, el.value);
+      el.classList.toggle('has-value', !!el.value.trim());
+    }
+
+    function renderItemPagination(totalItems, totalPages, currentPage) {
+      const info = document.getElementById('itemPaginationInfo');
+      const btns = document.getElementById('itemPaginationBtns');
+
+      if (!totalItems) { info.textContent = ''; btns.innerHTML = ''; return; }
+
+      const start   = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+      const end     = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+      const total100 = (dashboardData?.topItems || []).slice(0, MAX_ITEMS).length;
+      info.textContent = `Menampilkan ${start}–${end} dari ${totalItems} item${activeCategory ? ` (filter: ${activeCategory})` : ` (total: ${total100})`}`;
+
+      let html = `<button class="page-btn" onclick="goItemPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+      const range = [];
+      for (let p = 1; p <= totalPages; p++) {
+        if (p===1 || p===totalPages || (p>=currentPage-2 && p<=currentPage+2)) range.push(p);
+      }
+      let prev = null;
+      for (const p of range) {
+        if (prev && p-prev>1) html += `<span style="color:var(--muted);padding:0 4px;align-self:center;">…</span>`;
+        html += `<button class="page-btn${p===currentPage?' active':''}" onclick="goItemPage(${p})">${p}</button>`;
+        prev = p;
+      }
+      html += `<button class="page-btn" onclick="goItemPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+      btns.innerHTML = html;
+    }
+
+    function goItemPage(page) {
+      itemCurrentPage = page;
+      renderTopItems();
+      document.getElementById('topItemBody').closest('section').scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    // ── Export Feedback (semua 100 item) ──────────────────────────────
+    function exportFeedbackExcel() {
+      const allRows = (dashboardData?.topItems || []).slice(0, MAX_ITEMS);
+      if (!allRows.length) { alert('Belum ada data item.'); return; }
+
+      const headers = ['No','Item Code','Item Description','Category','Status','OOS Count','% OOS','Feedback','Status Feedback'];
+      const rows = allRows.map((item, idx) => {
+        const locked   = lockedItems.has(String(item.skuNumber || ''));
+        const fb       = getFeedback(item.skuNumber);
+        const statusFb = locked ? 'Submitted (Locked)' : (fb.trim() ? 'Draft' : '-');
+        return [
+          idx+1, item.skuNumber, item.itemDescription,
+          item.procurementOfficer||'-', item.status||'Active',
+          item.oosStoreCount, `${Number(item.oosPct||0).toFixed(2)}%`,
+          fb, statusFb
+        ];
+      });
+
+      exportHtmlTableAsExcel(`OOS_Feedback_${new Date().toISOString().slice(0,10)}`, headers, rows);
     }
 
     function exportHtmlTableAsExcel(fileName, headers, rows) {
