@@ -44,6 +44,33 @@
       padding: 28px;
     }
 
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background:
+        radial-gradient(circle at top left, rgba(79, 140, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(139, 92, 246, 0.16), transparent 24%),
+        linear-gradient(180deg, #0b1324 0%, #0a1220 100%);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 16px 32px rgba(2, 8, 23, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    .sticky-header-inner {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 22px 28px 16px;
+    }
+
+    .sticky-header .hero {
+      margin-bottom: 16px;
+    }
+
+    .sticky-header .grid-kpi {
+      margin-bottom: 0;
+    }
+
     .hero {
       display: flex;
       justify-content: space-between;
@@ -275,6 +302,13 @@
 
     tbody tr:hover {
       background: rgba(255, 255, 255, 0.05);
+    }
+
+    .store-row-clickable {
+      cursor: pointer;
+    }
+    .store-row-clickable:hover {
+      background: rgba(79, 140, 255, 0.1) !important;
     }
 
     .rank-badge {
@@ -541,8 +575,24 @@
         padding: 18px;
       }
 
-      .grid-kpi {
-        grid-template-columns: 1fr;
+      .sticky-header-inner {
+        padding: 14px 18px 12px;
+      }
+
+      .sticky-header .grid-kpi {
+        display: flex;
+        overflow-x: auto;
+        gap: 12px;
+        scrollbar-width: thin;
+      }
+
+      .sticky-header .grid-kpi .card.kpi {
+        flex: 0 0 78%;
+        scroll-snap-align: start;
+      }
+
+      .sticky-header .grid-kpi {
+        scroll-snap-type: x mandatory;
       }
 
       .section-header,
@@ -569,37 +619,62 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <section class="hero">
-      <div>
-        <h1>OOS Dashboard</h1>
-      </div>
-      <div class="hero-meta">
-        <div class="chip" id="generatedAtChip">-</div>
-        <div class="chip" id="sourceSheetChip">-</div>
-      </div>
-    </section>
+  <div class="sticky-header">
+    <div class="sticky-header-inner">
+      <section class="hero">
+        <div>
+          <h1>OOS Dashboard</h1>
+        </div>
+        <div class="hero-meta">
+          <div class="chip" id="generatedAtChip">-</div>
+          <div class="chip" id="sourceSheetChip">-</div>
+          <button class="btn" onclick="openImportModal()">⬆ Import Database</button>
+        </div>
+      </section>
 
-    <section class="grid-kpi">
-      <div class="card kpi primary">
-        <div class="kpi-label">Total Qty OOS</div>
-        <div class="kpi-value" id="kpiOosStore">-</div>
-        <div class="kpi-foot" id="kpiOosStoreFoot">-</div>
+      <section class="grid-kpi">
+        <div class="card kpi primary">
+          <div class="kpi-label">Total Qty OOS</div>
+          <div class="kpi-value" id="kpiOosStore">-</div>
+          <div class="kpi-foot" id="kpiOosStoreFoot">-</div>
+        </div>
+        <div class="card kpi warning">
+          <div class="kpi-label">% OOS</div>
+          <div class="kpi-value" id="kpiOosPct">-</div>
+          <div class="kpi-foot" id="kpiOosPctFoot">-</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Total Item Grade Toko (AA,A,B)</div>
+          <div class="kpi-value" id="kpiMaster">-</div>
+          <div class="kpi-foot" id="kpiMasterFoot">-</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Store</div>
+          <div class="kpi-value" id="kpiDimension">-</div>
+          <div class="kpi-foot" id="kpiDimensionFoot">-</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:20px;">
+    <!-- TREN OOS -->
+    <section class="card section">
+      <div class="section-header">
+        <h2>Tren OOS</h2>
+        <div class="section-tools">
+          <select class="select-input" id="historyRangeSelect" onchange="loadHistory()" style="width:auto;min-width:160px;">
+            <option value="7">7 Import Terakhir</option>
+            <option value="30" selected>30 Import Terakhir</option>
+            <option value="90">90 Import Terakhir</option>
+          </select>
+        </div>
       </div>
-      <div class="card kpi warning">
-        <div class="kpi-label">% OOS</div>
-        <div class="kpi-value" id="kpiOosPct">-</div>
-        <div class="kpi-foot" id="kpiOosPctFoot">-</div>
-      </div>
-      <div class="card kpi">
-        <div class="kpi-label">Total Item Grade Toko (AA,A,B)</div>
-        <div class="kpi-value" id="kpiMaster">-</div>
-        <div class="kpi-foot" id="kpiMasterFoot">-</div>
-      </div>
-      <div class="card kpi">
-        <div class="kpi-label">Store</div>
-        <div class="kpi-value" id="kpiDimension">-</div>
-        <div class="kpi-foot" id="kpiDimensionFoot">-</div>
+      <div id="historyEmptyState" class="empty" style="display:none;padding:24px 0;">Belum ada data histori. Histori akan mulai terkumpul setiap kali data database di-import.</div>
+      <div id="historyChartWrap" style="position:relative;height:280px;overflow-x:auto;overflow-y:hidden;">
+        <div id="historyChartInner" style="position:relative;height:100%;margin:0;">
+          <canvas id="historyChart"></canvas>
+        </div>
       </div>
     </section>
 
@@ -707,6 +782,28 @@
     <div class="page-credit">© 2026 Apotek Alpro <strong>Procurement & Data Analysis Team</strong></div>
   </div>
 
+  <div class="modal-backdrop" id="importModal" onclick="handleBackdropClose(event, 'importModal')">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Import Database</h3>
+        <p>Upload file Excel (.xlsx/.xls) atau CSV sesuai format kolom database. Data lama pada sheet OOS akan digantikan seluruhnya dengan isi file ini, dan snapshot histori akan otomatis tersimpan.</p>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="importFileInput">File Database</label>
+            <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" onchange="handleImportFileChange()" class="select-input">
+            <small id="selectedImportFile">Belum ada file dipilih</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" onclick="closeModal('importModal')">Batal</button>
+        <button class="btn" id="confirmImportBtn" onclick="confirmImportData()">Upload & Update</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="storeExportModal" onclick="handleBackdropClose(event, 'storeExportModal')">
     <div class="modal">
       <div class="modal-header">
@@ -736,6 +833,38 @@
       <div class="modal-footer">
         <button class="btn secondary" onclick="closeModal('storeExportModal')">Batal</button>
         <button class="btn" id="confirmStoreExportBtn" onclick="confirmStoreExport()">Download Excel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="storeDrilldownModal" onclick="handleBackdropClose(event, 'storeDrilldownModal')">
+    <div class="modal" style="max-width:900px;">
+      <div class="modal-header">
+        <h3 id="storeDrilldownTitle">Item OOS</h3>
+        <p id="storeDrilldownSubtitle">Daftar item dengan SOH Qty 0 pada store terpilih.</p>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="storeDrilldownSearch" class="select-input" placeholder="Cari SKU / nama item / officer..." oninput="renderStoreDrilldownRows()" style="margin-bottom:12px;">
+        <div class="table-wrap" style="max-height:420px;">
+          <table>
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Item Description</th>
+                <th>Item Grade</th>
+                <th>Procurement Officer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="storeDrilldownBody">
+              <tr><td colspan="5" class="empty">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" onclick="closeModal('storeDrilldownModal')">Tutup</button>
+        <button class="btn warning" onclick="exportCurrentStoreDrilldown()">Export Store Ini</button>
       </div>
     </div>
   </div>
@@ -784,8 +913,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxaY3c1tzPgfDIdhX-gyVs4vkMaf3arMJeB4fjCV-SVb2AuWreiV9Fv5oKmgJs0hww9-Q/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzsaXK_w6YVkIj89PcG2EwkfKFUnDsSgxG9RYokzB6xLjmzoS10WdRWNMTsMuuuh3KZ7Q/exec';
 
     let dashboardData = null;
 
@@ -842,7 +972,12 @@
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          // Sengaja pakai text/plain (bukan application/json) supaya browser TIDAK
+          // mengirim CORS preflight (OPTIONS) request. Google Apps Script web app
+          // tidak bisa merespons preflight dengan benar, sehingga request POST akan
+          // gagal dengan error "Failed to fetch" kalau pakai application/json.
+          // Backend tetap membaca body ini sebagai JSON biasa (lihat parsePostBody_).
+          'Content-Type': 'text/plain;charset=utf-8'
         },
         body: JSON.stringify({ action, ...payload })
       });
@@ -869,10 +1004,136 @@
         populateCategoryFilter();
         renderTopItems();
         initExportSelectors();
+        loadHistory();
       } catch (err) {
         console.error(err);
         alert('Gagal load dashboard: ' + err.message);
       }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // TREN OOS — baca sheet OOS_History via action 'history', render line chart
+    // ══════════════════════════════════════════════════════════════════
+    let historyChartInstance = null;
+
+    async function loadHistory() {
+      try {
+        const limit = document.getElementById('historyRangeSelect')?.value || 30;
+        const data = await fetchApi('history', { limit });
+        renderHistoryChart(data.history || []);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('historyEmptyState').style.display = 'block';
+        document.getElementById('historyEmptyState').textContent = 'Gagal memuat histori: ' + err.message;
+        document.getElementById('historyChartWrap').style.display = 'none';
+      }
+    }
+
+    function renderHistoryChart(history) {
+      const emptyState = document.getElementById('historyEmptyState');
+      const chartWrap = document.getElementById('historyChartWrap');
+
+      if (!history.length) {
+        emptyState.style.display = 'block';
+        chartWrap.style.display = 'none';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      chartWrap.style.display = 'block';
+
+      // Bulatkan angka biar nggak muncul floating point aneh (mis. 6.00000000001)
+      const round = (num, decimals) => {
+        const n = Number(num);
+        if (!isFinite(n)) return 0;
+        const factor = Math.pow(10, decimals);
+        return Math.round(n * factor) / factor;
+      };
+
+      const labels = history.map(h => new Date(h.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }));
+      const oosPctData = history.map(h => round(h.oosPct, 1));
+
+      // Kalau data terlalu banyak titik, sumbu-X jadi penuh sesak — batasi label yang ditampilkan
+      const maxXTicks = 10;
+
+      // Lebar grafik dibuat menyesuaikan jumlah titik data (bukan selalu 100% lebar container).
+      // Kalau titik datanya cuma sedikit (mis. 2-3), grafik jadi tidak "meregang" panjang dan kosong.
+      // Kalau titik datanya banyak, grafik melebar dan area chart bisa di-scroll horizontal.
+      const chartInner = document.getElementById('historyChartInner');
+      const wrapWidth = document.getElementById('historyChartWrap').clientWidth || 800;
+      const pointSpacing = 90; // px per titik data
+      const minPointsForFullWidth = Math.ceil(wrapWidth / pointSpacing);
+      const computedWidth = labels.length <= minPointsForFullWidth
+        ? wrapWidth
+        : labels.length * pointSpacing;
+      chartInner.style.width = computedWidth + 'px';
+      chartInner.style.maxWidth = '100%';
+      chartInner.style.margin = '0';
+
+      const ctx = document.getElementById('historyChart').getContext('2d');
+
+      if (historyChartInstance) {
+        historyChartInstance.destroy();
+      }
+
+      historyChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '% OOS',
+              data: oosPctData,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              tension: 0.35,
+              cubicInterpolationMode: 'monotone',
+              fill: true,
+              borderWidth: 2.5,
+              pointRadius: labels.length > 20 ? 0 : 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#f59e0b'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `% OOS: ${context.parsed.y.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              offset: true,
+              ticks: {
+                color: '#98a7c2',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: maxXTicks
+              },
+              grid: { display: false }
+            },
+            y: {
+              type: 'linear',
+              beginAtZero: true,
+              ticks: {
+                color: '#f59e0b',
+                callback: v => `${Number(v).toFixed(0)}%`,
+                maxTicksLimit: 6
+              },
+              grid: { color: 'rgba(255,255,255,0.06)' }
+            }
+          }
+        }
+      });
     }
 
     function renderSummary() {
@@ -956,7 +1217,7 @@
       const maxCount = Math.max(...rows.map(item => Number(item.totalItemCount || 0)), 1);
 
       tbody.innerHTML = rows.map((item, idx) => `
-        <tr>
+        <tr class="store-row-clickable" onclick="openStoreDrilldown('${escapeHtml(item.storeName).replace(/'/g, "\\'")}')" title="Klik untuk lihat item OOS di store ini">
           <td><span class="rank-badge">${idx + 1}</span></td>
           <td><strong>${escapeHtml(item.storeName)}</strong></td>
           <td>${formatNumber(item.totalItemCount)}</td>
@@ -965,6 +1226,69 @@
           <td class="metric-cell">${buildDualMetricCell(item.oosStoreCount, item.totalItemCount, maxCount)}</td>
         </tr>
       `).join('');
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // DRILL-DOWN PER STORE — klik baris di tabel By Store
+    // ══════════════════════════════════════════════════════════════════
+    let drilldownRows = [];
+    let drilldownStoreName = '';
+
+    async function openStoreDrilldown(storeName) {
+      drilldownStoreName = storeName;
+      document.getElementById('storeDrilldownTitle').textContent = 'Item OOS — ' + storeName;
+      document.getElementById('storeDrilldownSubtitle').textContent = 'Daftar item dengan SOH Qty 0 pada store ini.';
+      document.getElementById('storeDrilldownSearch').value = '';
+      document.getElementById('storeDrilldownBody').innerHTML = '<tr><td colspan="5" class="empty">Memuat...</td></tr>';
+      openModal('storeDrilldownModal');
+
+      try {
+        const data = await fetchApi('exportStore', { storeName: storeName, filterType: 'OOS' });
+        // headers: Store Name, SKU Number, Item Description, Item Grade, SOH Qty, SOH Value, Procurement Officer, Status, OOS Flag
+        drilldownRows = (data.rows || []).map(r => ({
+          sku: r[1], desc: r[2], grade: r[3], officer: r[6], status: r[7]
+        }));
+        document.getElementById('storeDrilldownSubtitle').textContent =
+          drilldownRows.length + ' item OOS ditemukan pada store ini.';
+        renderStoreDrilldownRows();
+      } catch (err) {
+        document.getElementById('storeDrilldownBody').innerHTML =
+          '<tr><td colspan="5" class="empty">Gagal memuat data: ' + escapeHtml(err.message) + '</td></tr>';
+      }
+    }
+
+    function renderStoreDrilldownRows() {
+      const tbody = document.getElementById('storeDrilldownBody');
+      const keyword = (document.getElementById('storeDrilldownSearch')?.value || '').trim().toLowerCase();
+
+      const rows = !keyword ? drilldownRows : drilldownRows.filter(r =>
+        [r.sku, r.desc, r.officer].join(' ').toLowerCase().includes(keyword)
+      );
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Tidak ada item OOS ditemukan</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${escapeHtml(r.sku)}</td>
+          <td>${escapeHtml(r.desc)}</td>
+          <td>${escapeHtml(r.grade)}</td>
+          <td>${escapeHtml(r.officer)}</td>
+          <td>${escapeHtml(r.status)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function exportCurrentStoreDrilldown() {
+      if (!drilldownStoreName) return;
+      closeModal('storeDrilldownModal');
+      openStoreExportModal();
+      const sel = document.getElementById('storeExportSelect');
+      const filterSel = document.getElementById('storeExportFilter');
+      if (sel) sel.value = drilldownStoreName;
+      if (filterSel) filterSel.value = 'OOS';
     }
 
     function renderOfficerTable() {
@@ -1499,17 +1823,49 @@
     async function parseImportFile(file) {
       const extension = String(file.name || '').split('.').pop().toLowerCase();
 
+      // Sama seperti backend: nama header yang dikenali sebagai kolom SKU.
+      // Urutan kolom pada file import bisa berbeda-beda, jadi kolom SKU
+      // dicari berdasarkan NAMA header, bukan posisi tetap.
+      const SKU_HEADER_ALIASES = ['sku number', 'sku', 'item code', 'kode sku'];
+      const normalizeHeader = (h) => String(h || '').trim().toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      const findSkuColumnIndex = (headerRow) => {
+        const normalized = (headerRow || []).map(normalizeHeader);
+        for (const alias of SKU_HEADER_ALIASES) {
+          const idx = normalized.indexOf(alias);
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
+
+      const normalizeSkuColumn = (rows) => {
+        if (!rows.length) return rows;
+        const skuIdx = findSkuColumnIndex(rows[0]);
+        if (skuIdx === -1) return rows; // kolom SKU tidak ditemukan di file ini, biarkan apa adanya
+
+        return rows.map((row, idx) => {
+          if (idx === 0) return row; // baris header, biarkan apa adanya
+          const copy = row.slice();
+          if (copy[skuIdx] !== undefined && copy[skuIdx] !== '') {
+            copy[skuIdx] = String(copy[skuIdx]).trim();
+          }
+          return copy;
+        });
+      };
+
       if (extension === 'csv') {
         const text = await file.text();
-        const workbook = XLSX.read(text, { type: 'string' });
+        const workbook = XLSX.read(text, { type: 'string', raw: false });
         const firstSheet = workbook.SheetNames[0];
-        return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '', raw: false });
+        return normalizeSkuColumn(rows);
       }
 
       const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array' });
+      const workbook = XLSX.read(buffer, { type: 'array', raw: false });
       const firstSheet = workbook.SheetNames[0];
-      return XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '' });
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1, defval: '', raw: false });
+      return normalizeSkuColumn(rows);
     }
 
     async function confirmImportData() {
